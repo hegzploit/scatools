@@ -1,0 +1,7 @@
+scipy
+seaborn
+plotly
+tqdm
+numpy
+chipwhisperer
+matplotlib

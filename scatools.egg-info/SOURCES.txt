@@ -1,0 +1,8 @@
+setup.py
+scatools/__init__.py
+scatools/scatools.py
+scatools.egg-info/PKG-INFO
+scatools.egg-info/SOURCES.txt
+scatools.egg-info/dependency_links.txt
+scatools.egg-info/requires.txt
+scatools.egg-info/top_level.txt
