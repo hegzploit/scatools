@@ -141,9 +141,9 @@ def init(target_type=cw.targets.SimpleSerial2):
             - target: The target device object.
             - prog: The programmer object for flashing firmware.
     """
-    global prog
+    global prog, scope
     try:
-        if not scope.connectStatus:
+        if not scope.connectStatus: # type: ignore
             scope.con()
     except NameError:
         scope = cw.scope()
@@ -234,7 +234,19 @@ def compile_and_flash(scope, path=".", hex_file="main-CWLITEARM.hex"):
     -------
     None
     """
-    subprocess.Popen(["make", "-C", path], stdout=subprocess.PIPE)
+    try:
+        # Use subprocess.run to wait for completion and check for errors.
+        # capture_output=True will capture stdout and stderr.
+        result = subprocess.run(["make", "-C", path], check=True, capture_output=True, text=True)
+        # You can optionally print result.stdout or result.stderr if needed
+        # print(f"Make stdout: {result.stdout}")
+        # print(f"Make stderr: {result.stderr}")
+    except subprocess.CalledProcessError as e:
+        print(f"Error during compilation: {e}")
+        print(f"Stdout: {e.stdout}")
+        print(f"Stderr: {e.stderr}")
+        return  # Optionally, re-raise or handle more gracefully
+
     cw.program_target(scope, prog, hex_file)
 
 HW = np.array([bin(i).count('1') for i in range(256)], dtype=np.uint8)
@@ -328,10 +340,10 @@ def getSNR_HW(traces, snr_target):
     Calculates the Signal-to-Noise Ratio (SNR) based on Hamming Weight (HW) groups.
 
     Args:
-        target_var_hw_values (np.array): A 1D array containing the Hamming Weight
-                                         for each corresponding trace in `traces`.
         traces (np.array): A 2D numpy array where rows are individual traces
                            and columns are samples (time points).
+        snr_target (np.array): A 1D array containing the Hamming Weight
+                               for each corresponding trace in `traces`.
 
     Returns:
         np.array: A 1D array containing the SNR for each sample.
