@@ -8,11 +8,11 @@ plotting, and more, related to side-channel attacks.
 # Import functions and constants from submodules to make them available
 # directly under the 'scatools' namespace.
 
-from .constants import HW, SBOX, HW_SBOX
-from .plotting import ph, p, pi, export_plot_html_embed, plot_overlayed
-from .hardware import init, reset, cap_trace, compile_and_flash
-from .analysis import calc_min_traces_needed_for_zero_PGE, getSNR_HW, getSNR
-from .scatools import this
+# from .constants import HW, SBOX, HW_SBOX
+# from .plotting import ph, p, pi, export_plot_html_embed, plot_overlayed
+# from .hardware import init, reset, cap_trace, compile_and_flash
+# from .analysis import calc_min_traces_needed_for_zero_PGE, getSNR_HW, getSNR
+# from .scatools import this
 
 # You can define __all__ to specify what is exported when a user does `from scatools import *`
 # For example:
