@@ -332,7 +332,6 @@ def plot_overlayed(data_list, line_names=None, title='Overlayed Line Plots', x_t
                       xaxis_title=x_title,
                       yaxis_title=y_title)
 
-    fig.show()
     return fig
 
 def getSNR_HW(traces, snr_target):
@@ -403,6 +402,63 @@ def getSNR_HW(traces, snr_target):
 
 def getSNR(traces, snr_target):
     snr = SNR(nc=snr_target.max() + 1)
+    if snr_target.ndim == 1:
+        zeroes = np.zeros_like(snr_target)
+        snr_target = np.column_stack((snr_target, zeroes))
     snr.fit_u(traces.astype(np.int16), snr_target.astype(np.uint16))
 
     return snr.get_snr()
+
+def plot_overlayed_alpha(
+    traces,
+    *,
+    alpha: float = 0.05,
+    linewidth: float = 0.9,
+    color: str = "black",
+    figsize: tuple = (12, 6),
+    dpi: int = 150,
+    xlabel: str = "Sample index",
+    ylabel: str = "Amplitude",
+    title: str | None = None,
+):
+    """
+    Overlay several 1-D traces on a single plot.
+
+    Parameters
+    ----------
+    traces : (N, M)‐array-like
+        Collection of N traces, each of length M.
+    alpha : float, default 0.05
+        Opacity per trace (lower → darker regions where many traces overlap).
+    linewidth : float, default 1.0
+        Width of each trace’s line.
+    color : str, default 'black'
+        Color for all traces.
+    figsize : tuple, default (12, 6)
+        Figure size in inches.
+    dpi : int, default 150
+        Figure resolution.
+    xlabel, ylabel : str
+        Axis labels.
+    title : str, optional
+        Custom title.  If None, a title is auto-generated.
+
+    Returns
+    -------
+    matplotlib.figure.Figure
+        The created figure (so you can tweak it further if needed).
+    """
+    traces = np.asarray(traces)
+
+    fig = plt.figure(figsize=figsize, dpi=dpi)
+    for tr in traces:
+        plt.plot(tr, alpha=alpha, color=color, linewidth=linewidth)
+
+    if title is None:
+        title = f"Overlay of {traces.shape[0]} traces (α = {alpha})"
+    plt.title(title)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.tight_layout()
+
+    return fig
