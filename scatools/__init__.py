@@ -27,11 +27,12 @@ from .scatools import (
     HW,
     SBOX,
     HW_SBOX,
-    calc_min_traces_needed_for_zero_PGE,
     plot_overlayed,
     getSNR_HW,
     getSNR
 )
+from .vcd_processor import VCDProcessor
+from .vcd_batch_processor import VCDBatchProcessor
 
 # You can define __all__ to specify what is exported when a user does `from scatools import *`
 __all__ = [
@@ -39,7 +40,8 @@ __all__ = [
     "ph", "p", "pi", "export_plot_html_embed", "plot_overlayed",  # Plotting
     "init", "reset", "cap_trace", "compile_and_flash",  # Hardware
     "HW", "SBOX", "HW_SBOX",  # Constants
-    "calc_min_traces_needed_for_zero_PGE", "getSNR_HW", "getSNR",  # Analysis
+    "getSNR_HW", "getSNR",  # Analysis
+    "VCDProcessor", "VCDBatchProcessor"  # VCD utilities
 ]
 
 # Optionally, set a version for your package

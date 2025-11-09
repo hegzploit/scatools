@@ -273,29 +273,6 @@ SBOX = np.array([
 
 HW_SBOX = HW[SBOX]
 
-def calc_min_traces_needed_for_zero_PGE(attack_results):
-    """
-    Calculate the minimum number of traces needed to recover the entire correct key
-    :param attack_results: Attack results from the CPA attack
-    :return: The number of traces needed to get the correct key
-    """
-    pges = attack_results.pge_total
-    earliest_pge = {}
-
-    for pge in pges:
-        if pge['pge'] == 0:
-            subkey = pge['subkey']
-            if subkey not in earliest_pge or pge['trace'] < earliest_pge[subkey]['trace']:
-                earliest_pge[subkey] = pge
-
-    # print the number of traces needed to get the correct key
-    max_trace = 0
-    for pges in earliest_pge.values():
-        if pges['trace'] > max_trace:
-            max_trace = pges['trace']
-
-    return max_trace
-
 def plot_overlayed(data_list, line_names=None, title='Overlayed Line Plots', x_title='Index', y_title='Value'):
     """
     Overlays multiple line plots on the same figure using data from a nested list.

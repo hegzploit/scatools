@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='scatools',
-    version='0.1',
+    version='0.1.1',
     packages=['scatools'],
     # required packages:
     # from scipy.stats import norm
@@ -22,11 +22,12 @@ setup(
         'matplotlib',
         'plotly',
         'pandas',
-        'tqdm'
+        'tqdm',
+        'pyvcd',
+        'scalib'
     ],
     description='A collection of tools for side-channel analysis',
     url='hegz.io',
     author='Hegz',
     author_email='y@hegz.io',
     license='MIT',)
-
