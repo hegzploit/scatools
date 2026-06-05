@@ -101,8 +101,6 @@ uv sync                 # create venv + install deps
 uv pip install -e .     # editable install
 ```
 
-See [`example.ipynb`](example.ipynb) for a worked end-to-end notebook.
-
 ## License
 
 [MIT](LICENSE)
