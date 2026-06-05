@@ -28,20 +28,41 @@ from .scatools import (
     SBOX,
     HW_SBOX,
     plot_overlayed,
+    plot_overlayed_alpha,
     getSNR_HW,
-    getSNR
+    getSNR,
+    float_to_int16,
 )
-from .vcd_processor import VCDProcessor
-from .vcd_batch_processor import VCDBatchProcessor
+from . import leakage_models
+from .leakage_models import (
+    LeakageModel,
+    FitResult,
+    Comparison,
+    fit,
+    group_magnitudes,
+    plot_coeffs,
+    compare,
+    cross_run_table,
+    plot_cross_run,
+)
+from . import serial_target
+from .serial_target import Target
+from . import plotting
+from .plotting import LiveSNR, capture_live_snr
 
 # You can define __all__ to specify what is exported when a user does `from scatools import *`
 __all__ = [
     "this",
-    "ph", "p", "pi", "export_plot_html_embed", "plot_overlayed",  # Plotting
+    "ph", "p", "pi", "export_plot_html_embed", "plot_overlayed", "plot_overlayed_alpha",  # Plotting
     "init", "reset", "cap_trace", "compile_and_flash",  # Hardware
     "HW", "SBOX", "HW_SBOX",  # Constants
-    "getSNR_HW", "getSNR",  # Analysis
-    "VCDProcessor", "VCDBatchProcessor"  # VCD utilities
+    "getSNR_HW", "getSNR", "float_to_int16",  # Analysis
+    "leakage_models",  # Submodule
+    "LeakageModel", "FitResult", "Comparison",
+    "fit", "group_magnitudes", "plot_coeffs", "compare",
+    "cross_run_table", "plot_cross_run",  # Leakage-model harness
+    "serial_target", "Target",  # Serial target
+    "plotting", "LiveSNR", "capture_live_snr",  # Live plotting
 ]
 
 # Optionally, set a version for your package

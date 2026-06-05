@@ -249,7 +249,13 @@ def compile_and_flash(scope, path=".", hex_file="main-CWLITEARM.hex"):
 
     cw.program_target(scope, prog, hex_file)
 
-HW = np.array([bin(i).count('1') for i in range(256)], dtype=np.uint8)
+def HW(n, bitwidth: int = 32):
+    """Hamming weight (popcount) of `n` at the given bit width.
+
+    Vectorized over array-like `n`.
+    """
+    f = np.vectorize(lambda x: np.binary_repr(x, bitwidth).count("1"))
+    return f(n)
 
 SBOX = np.array([
     # 0    1    2    3    4    5    6    7    8    9    a    b    c    d    e    f
@@ -271,43 +277,66 @@ SBOX = np.array([
     0x8c,0xa1,0x89,0x0d,0xbf,0xe6,0x42,0x68,0x41,0x99,0x2d,0x0f,0xb0,0x54,0xbb,0x16  # f
 ], dtype=np.uint8)
 
-HW_SBOX = HW[SBOX]
+HW_SBOX = HW(SBOX, 8)
 
 def plot_overlayed(data_list, line_names=None, title='Overlayed Line Plots', x_title='Index', y_title='Value'):
     """
-    Overlays multiple line plots on the same figure using data from a nested list.
-    Uses default x-values based on the length of the first y-data list.
+    Overlays multiple line plots on the same figure using data from a list of arrays/lists.
+    Uses default x-values based on the length of the first y-data.
 
     Args:
-        data_list: A list of lists, where each inner list contains the y-values for a line plot.
-                   It's assumed that all inner lists have the same length for default x-values.
+        data_list: A list of arrays/lists, where each element contains the y-values for a line plot.
+                   Can be numpy arrays, lists, or any array-like object.
+                   All elements should have the same length for default x-values.
         line_names: An optional list of strings specifying the names for each line in the legend.
                     If None, default names ('Line 1', 'Line 2', etc.) will be used.
         title: The title of the plot.
         x_title: The label for the x-axis (defaults to 'Index').
         y_title: The label for the y-axis (defaults to 'Value').
+    
+    Returns:
+        fig: A plotly Figure object that can be shown with .show() or further modified.
     """
     fig = go.Figure()
 
-    if not data_list:
+    if not data_list or len(data_list) == 0:
         print("Warning: Empty data_list provided. No lines will be plotted.")
-        return fig.show()
+        fig.show()
+        return fig
 
-    default_x = list(range(len(data_list[0])))
+    # Convert to numpy array for consistent handling
+    data_array = np.asarray(data_list[0])
+    expected_length = len(data_array)
+    default_x = np.arange(expected_length)
 
+    # Generate default line names if not provided
     if line_names is None:
         line_names = [f'Line {i+1}' for i in range(len(data_list))]
     elif len(line_names) != len(data_list):
         raise ValueError("The length of 'line_names' must match the number of lines in 'data_list'.")
 
+    # Add traces for each line
     for i, y_data in enumerate(data_list):
-        if len(y_data) != len(default_x):
-            raise ValueError(f"The length of y-data for '{line_names[i]}' ({len(y_data)}) does not match the expected length ({len(default_x)}).")
-        fig.add_trace(go.Scatter(x=default_x, y=y_data, mode='lines', name=line_names[i]))
+        y_array = np.asarray(y_data)
+        
+        if len(y_array) != expected_length:
+            raise ValueError(
+                f"The length of y-data for '{line_names[i]}' ({len(y_array)}) "
+                f"does not match the expected length ({expected_length})."
+            )
+        
+        fig.add_trace(go.Scatter(
+            x=default_x, 
+            y=y_array, 
+            mode='lines', 
+            name=line_names[i]
+        ))
 
-    fig.update_layout(title=title,
-                      xaxis_title=x_title,
-                      yaxis_title=y_title)
+    fig.update_layout(
+        title=title,
+        xaxis_title=x_title,
+        yaxis_title=y_title
+    )
 
     return fig
 
@@ -378,13 +407,31 @@ def getSNR_HW(traces, snr_target):
     return snr
 
 def getSNR(traces, snr_target):
-    snr = SNR(nc=snr_target.max() + 1)
+    # Ensure target is at least 2D for libraries that expect (N, M)
     if snr_target.ndim == 1:
-        zeroes = np.zeros_like(snr_target)
-        snr_target = np.column_stack((snr_target, zeroes))
-    snr.fit_u(traces.astype(np.int16), snr_target.astype(np.uint16))
+        snr_target = snr_target.reshape(-1, 1)
+        
+    # Dynamically determine nc based on targets
+    # Note: If nc is very large, consider a different leakage model
+    num_classes = int(snr_target.max()) + 1
+    snr = SNR(nc=num_classes, use_64bit=True)
+    
+    # Use float32 for traces to preserve precision unless 
+    # the specific SNR implementation requires integers.
+    # Use .astype() only if you are certain of the data range.
+    snr.fit_u(traces, snr_target.astype(np.uint16))
+    return snr.get_snr()[0]
 
-    return snr.get_snr()
+def float_to_int16(traces):
+    # 1. Find the global max/min to keep scaling consistent across all traces
+    t_min, t_max = traces.min(), traces.max()
+    
+    # 2. Map the range to [-1, 1] then scale to int16 range
+    # We use 32767 to avoid overflow
+    traces_normalized = 2 * (traces - t_min) / (t_max - t_min) - 1
+    traces_int16 = (traces_normalized * 32767).astype(np.int16)
+    
+    return traces_int16
 
 def plot_overlayed_alpha(
     traces,

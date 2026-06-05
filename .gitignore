@@ -1,4 +1,24 @@
-build
-__pycache__
-*.egg-info
+# Python
+build/
+dist/
+__pycache__/
+*.egg-info/
+*.py[cod]
+
+# Virtual envs
+.venv/
+venv/
+
+# Editor / tooling
 .aider*
+.ropeproject/
+.ipynb_checkpoints/
+
+# Vendored / local-only (livelossplot is just an upstream copy for reference)
+livelossplot/
+
+# Data artifacts (traces, captures, scratch arrays) — keep these out of the repo
+vcds/
+*.vcd
+*.npy
+*.h5
