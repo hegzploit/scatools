@@ -17,7 +17,7 @@ import plotly.express as px
 import pandas as pd
 import subprocess
 from tqdm.notebook import tqdm, trange
-from scalib.metrics import SNR
+from scalib.metrics import SNR, Ttest
 
 def this():
     """
@@ -406,7 +406,32 @@ def getSNR_HW(traces, snr_target):
 
     return snr
 
+def _to_int16_traces(traces):
+    """
+    Return `traces` as int16, which is the only dtype SCALib's SNR accepts.
+
+    uint16 is shifted by 32768 rather than cast: SNR is invariant under a
+    constant offset, so this is lossless, whereas a plain cast would wrap
+    anything above 32767. Other integer types that fit in int16 are cast
+    directly. Floats and wider integers are not converted silently; use
+    `float_to_int16` for those.
+    """
+    traces = np.asarray(traces)
+    if traces.dtype == np.int16:
+        return traces
+    if traces.dtype == np.uint16:
+        return (traces.astype(np.int32) - 32768).astype(np.int16)
+    if traces.dtype in (np.int8, np.uint8):
+        return traces.astype(np.int16)
+    raise TypeError(
+        f"getSNR needs int16, uint16, int8 or uint8 traces, got {traces.dtype}; "
+        "convert with float_to_int16 first."
+    )
+
 def getSNR(traces, snr_target):
+    traces = _to_int16_traces(traces)
+    snr_target = np.asarray(snr_target)
+
     # Ensure target is at least 2D for libraries that expect (N, M)
     if snr_target.ndim == 1:
         snr_target = snr_target.reshape(-1, 1)
@@ -416,11 +441,39 @@ def getSNR(traces, snr_target):
     num_classes = int(snr_target.max()) + 1
     snr = SNR(nc=num_classes, use_64bit=True)
     
-    # Use float32 for traces to preserve precision unless 
-    # the specific SNR implementation requires integers.
-    # Use .astype() only if you are certain of the data range.
     snr.fit_u(traces, snr_target.astype(np.uint16))
     return snr.get_snr()[0]
+
+def getTVLA(traces, labels, d=1):
+    """
+    Fixed-vs-random (or any two-group) TVLA via SCALib's univariate t-test.
+
+    Args:
+        traces (np.array): 2D array, rows are traces and columns are samples.
+                           Accepts the dtypes `getSNR` does (int16, uint16,
+                           int8, uint8).
+        labels (np.array): 1D array with one entry per trace, 0 for the first
+                           group and 1 for the second (bools are fine).
+        d (int): Statistical order to return. 1 is the usual TVLA t-test, 2 and
+                 above test higher-order moments (for masked implementations).
+
+    Returns:
+        np.array: 1D array of t-values, one per sample, at order `d`.
+                  |t| > 4.5 is the conventional leakage threshold.
+    """
+    traces = _to_int16_traces(traces)
+    labels = np.asarray(labels).reshape(-1)
+
+    if labels.shape[0] != traces.shape[0]:
+        raise ValueError(
+            f"{labels.shape[0]} labels for {traces.shape[0]} traces."
+        )
+    if not np.isin(labels, (0, 1)).all():
+        raise ValueError("labels must contain only 0 and 1.")
+
+    ttest = Ttest(d=d)
+    ttest.fit_u(traces, labels.astype(np.uint16))
+    return ttest.get_ttest()[d - 1]
 
 def float_to_int16(traces):
     # 1. Find the global max/min to keep scaling consistent across all traces

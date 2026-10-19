@@ -49,6 +49,7 @@ sca.compile_and_flash("path/to/firmware-project", platform="CWLITEARM")
 # --- Analysis: signal-to-noise ratio ---
 snr = sca.getSNR(traces, labels)          # generic SNR
 snr_hw = sca.getSNR_HW(traces, intermediates)  # Hamming-weight SNR
+t = sca.getTVLA(traces, labels)            # fixed-vs-random t-test, labels are 0/1
 
 # --- Quick plots ---
 sca.p(traces[0])               # line plot
@@ -60,7 +61,7 @@ sca.plot_overlayed(traces[:50])
 
 | Module | What it gives you |
 | --- | --- |
-| `scatools` | Hardware setup (`init`, `reset`, `cap_trace`, `compile_and_flash`), SNR (`getSNR`, `getSNR_HW`), leakage constants (`HW`, `SBOX`, `HW_SBOX`), and plotting helpers (`p`, `ph`, `pi`, `plot_overlayed`, `plot_overlayed_alpha`, `export_plot_html_embed`). |
+| `scatools` | Hardware setup (`init`, `reset`, `cap_trace`, `compile_and_flash`), SNR (`getSNR`, `getSNR_HW`), TVLA t-test (`getTVLA`), leakage constants (`HW`, `SBOX`, `HW_SBOX`), and plotting helpers (`p`, `ph`, `pi`, `plot_overlayed`, `plot_overlayed_alpha`, `export_plot_html_embed`). |
 | `scatools.leakage_models` | Lightweight harness for building, fitting, and comparing linear leakage models: `LeakageModel`, `FitResult`, `Comparison`, `fit`, `compare`, `group_magnitudes`, `plot_coeffs`, `cross_run_table`, `plot_cross_run`. |
 | `scatools.serial_target` | `Target` — a small pwntools-style serial wrapper (`send`, `recvn`, `recvuntil`, `clean`, `close`) for non-ChipWhisperer targets. |
 | `scatools.plotting` | `LiveSNR` and `capture_live_snr` for refreshing an SNR plot point-by-point during a capture. |
