@@ -442,7 +442,10 @@ def getSNR(traces, snr_target):
     snr = SNR(nc=num_classes, use_64bit=True)
     
     snr.fit_u(traces, snr_target.astype(np.uint16))
-    return snr.get_snr()[0]
+    # A sample that is the same in every trace (noiseless simulation) comes out 0/0.
+    # It has no signal, so its SNR is 0, as in getSNR_HW.
+    snr = snr.get_snr()[0]
+    return np.where(np.isnan(snr), 0.0, snr)
 
 def getTVLA(traces, labels, d=1):
     """
