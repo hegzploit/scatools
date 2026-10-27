@@ -31,6 +31,7 @@ from .scatools import (
     plot_overlayed_alpha,
     getSNR_HW,
     getSNR,
+    getSNR_noise,
     getTVLA,
     float_to_int16,
 )
@@ -57,7 +58,7 @@ __all__ = [
     "ph", "p", "pi", "export_plot_html_embed", "plot_overlayed", "plot_overlayed_alpha",  # Plotting
     "init", "reset", "cap_trace", "compile_and_flash",  # Hardware
     "HW", "SBOX", "HW_SBOX",  # Constants
-    "getSNR_HW", "getSNR", "getTVLA", "float_to_int16",  # Analysis
+    "getSNR_HW", "getSNR", "getSNR_noise", "getTVLA", "float_to_int16",  # Analysis
     "leakage_models",  # Submodule
     "LeakageModel", "FitResult", "Comparison",
     "fit", "group_magnitudes", "plot_coeffs", "compare",

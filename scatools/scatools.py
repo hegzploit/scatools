@@ -447,6 +447,19 @@ def getSNR(traces, snr_target):
     snr = snr.get_snr()[0]
     return np.where(np.isnan(snr), 0.0, snr)
 
+def getSNR_noise(traces, snr_target, sigma=1.0):
+    """
+    getSNR after adding Gaussian noise of standard deviation `sigma` (in the traces'
+    units, rounded to integers) to integer traces. For noiseless (simulated) traces,
+    where a sample the target fully determines would otherwise have an infinite SNR.
+    The seed is fixed, so the result repeats.
+    """
+    traces = _to_int16_traces(traces).astype(np.int32)
+    traces += np.random.default_rng(0).normal(0, sigma, traces.shape).round().astype(np.int32)
+    # SNR ignores a constant offset: put the lowest value at the bottom of int16.
+    traces -= traces.min() + 32768
+    return getSNR(traces.clip(None, 32767).astype(np.int16), snr_target)
+
 def getTVLA(traces, labels, d=1):
     """
     Fixed-vs-random (or any two-group) TVLA via SCALib's univariate t-test.
